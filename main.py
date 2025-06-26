@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from kubernetes.client import NetworkingV1Api
-from uptime_kuma_api import MonitorType, UptimeKumaApi
+from uptime_kuma_api import MonitorType, UptimeKumaApi, UptimeKumaException
 from typing import Any
 from dataclasses import dataclass
 import os
@@ -28,13 +28,20 @@ def get_networking_api_client() -> NetworkingV1Api:
 
 
 def get_uptime_kuma_api_client(url: str, username: str, password: str) -> UptimeKumaApi:
-    client = UptimeKumaApi(url)
-    client.login(
-        username=username,
-        password=password,
-    )
-    return client
-
+    retries = 0
+    while retries < 10:
+        try:
+            client = UptimeKumaApi(url)
+            client.login(
+                username=username,
+                password=password,
+            )
+            return client
+        except UptimeKumaException as e:
+            print(f"Error connecting to Uptime Kuma: {e}. The Uptime Kuma api is only accessible when the user is not logged in. Please log out and try again")
+            print("Retrying in 10 seconds")
+            time.sleep(10)
+    raise SystemExit(1)
 
 def get_or_create_tag(client: UptimeKumaApi, tag: str) -> dict[Any, Any]:
     tags = client.get_tags()
