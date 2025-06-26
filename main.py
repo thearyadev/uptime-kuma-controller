@@ -1,10 +1,10 @@
 from kubernetes import client, config
 from kubernetes.client import NetworkingV1Api
 from uptime_kuma_api import MonitorType, UptimeKumaApi
-from pprint import pprint as print
 from typing import Any
 from dataclasses import dataclass
 import os
+import time
 
 @dataclass
 class Ingress:
@@ -163,4 +163,6 @@ def filter_missing_monitors(
 
 
 if __name__ == "__main__":
-    SystemExit(main())
+    while True:
+        time.sleep(60)
+        main()
