@@ -29,7 +29,7 @@ def get_networking_api_client() -> NetworkingV1Api:
 
 def get_uptime_kuma_api_client(url: str, username: str, password: str) -> UptimeKumaApi:
     retries = 0
-    while retries < 10:
+    while retries < 100:
         try:
             client = UptimeKumaApi(url)
             client.login(
