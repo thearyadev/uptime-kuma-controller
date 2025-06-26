@@ -7,6 +7,7 @@ COPY uv.lock .
 RUN uv sync --locked
 
 ENV PROD=1
+ENV PYTHONUNBUFFERED=1
 
 CMD ["uv", "run", "main.py"]
 

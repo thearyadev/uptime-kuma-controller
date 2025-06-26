@@ -42,7 +42,7 @@ spec:
       serviceAccountName: uptime-kuma-controller-sa
       containers:
       - name: uptime-kuma-controller
-        image: thearyadev0/uptime-kuma-controller:1.0.2
+        image: thearyadev0/uptime-kuma-controller:1.0.3
         # command: ["sleep", "infinity"]
         imagePullPolicy: Always
         env:
