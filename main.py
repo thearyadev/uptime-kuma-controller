@@ -17,15 +17,20 @@ class Ingress:
 
 
 def get_networking_api_client() -> NetworkingV1Api:
-    config.load_kube_config()
+    try:
+        config.load_kube_config()
+    except Exception as e:
+        print(f"Error loading kube config: {e}")
+        print("Using in-cluster config")
+        config.load_incluster_config()
     return client.NetworkingV1Api()
 
 
-def get_uptime_kuma_api_client(url: str) -> UptimeKumaApi:
+def get_uptime_kuma_api_client(url: str, username: str, password: str) -> UptimeKumaApi:
     client = UptimeKumaApi(url)
     client.login(
-        username="arya",
-        password="Arrk1174",
+        username=username,
+        password=password,
     )
     return client
 
@@ -41,18 +46,22 @@ def get_or_create_tag(client: UptimeKumaApi, tag: str) -> dict[Any, Any]:
 def main() -> int:
     UPTIME_KUMA_API_URL = os.getenv("UPTIME_KUMA_API_URL")
     CONTROLLER_TAG = os.getenv("CONTROLLER_TAG")
+    KUMA_USERNAME = os.getenv("KUMA_USERNAME")
+    KUMA_PASSWORD = os.getenv("KUMA_PASSWORD")
     PROD = os.getenv("PROD")
-    if not UPTIME_KUMA_API_URL or not CONTROLLER_TAG:
-        print("UPTIME_KUMA_API_URL and CONTROLLER_TAG environment variables are not set")
+    if not UPTIME_KUMA_API_URL or not CONTROLLER_TAG or not KUMA_USERNAME or not KUMA_PASSWORD:
+        print("UPTIME_KUMA_API_URL, CONTROLLER_TAG, KUMA_USERNAME, and KUMA_PASSWORD environment variables are not set")
         if PROD:
             print("Exiting...")
             return 1
         print("Running with development defaults")
         UPTIME_KUMA_API_URL = "http://localhost:3001"
         CONTROLLER_TAG = "k8s-ingress"
+        KUMA_USERNAME = "arya"
+        KUMA_PASSWORD = "Arrk1174"
 
     k8s_client = get_networking_api_client()
-    uptime_kuma_client = get_uptime_kuma_api_client(UPTIME_KUMA_API_URL)
+    uptime_kuma_client = get_uptime_kuma_api_client(UPTIME_KUMA_API_URL, KUMA_USERNAME, KUMA_PASSWORD)
     tag = get_or_create_tag(uptime_kuma_client, CONTROLLER_TAG)
     monitors = get_monitors(uptime_kuma_client, CONTROLLER_TAG)
     ingress_hosts = get_ingress_hosts(k8s_client)
