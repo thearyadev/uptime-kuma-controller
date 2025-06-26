@@ -42,16 +42,15 @@ spec:
       serviceAccountName: uptime-kuma-controller-sa
       containers:
       - name: uptime-kuma-controller
-        image: thearyadev0/uptime-kuma-controller:1.0.3
-        # command: ["sleep", "infinity"]
+        image: thearyadev0/uptime-kuma-controller:1.0.5
         imagePullPolicy: Always
         env:
           - name: CONTROLLER_TAG
             value: k8s-ingress
           - name: UPTIME_KUMA_API_URL
-            value: http://uptime-kuma-service:3001
+            value: http://uptime-kuma-service:3001 # change this to your uptime kuma url
           - name: KUMA_PASSWORD
-            value: Arrk1174
+            value: Arrk1174 # change this to your uptime kuma password
           - name: KUMA_USERNAME
-            value: arya
+            value: arya # change this to your uptime kuma username
       restartPolicy: Always
