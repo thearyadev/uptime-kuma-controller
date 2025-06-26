@@ -14,7 +14,7 @@ class Ingress:
     secure: bool
 
     def __hash__(self) -> int:
-        return hash(self.host)
+        return hash(f"{self.host}-{self.ignore}-{self.secure}")
 
 
 def get_networking_api_client() -> NetworkingV1Api:
@@ -76,6 +76,7 @@ def main() -> int:
     monitors = get_monitors(uptime_kuma_client, CONTROLLER_TAG)
     ingress_hosts = get_ingress_hosts(k8s_client)
     prunable_monitors = filter_prunable_monitors(monitors, ingress_hosts)
+    print(f"Prunable monitors: {prunable_monitors}")
     missing_monitors = filter_missing_monitors(monitors, ingress_hosts)
     for monitor in prunable_monitors:
         print(f"Pruning monitor: {monitor['url']}")
@@ -153,7 +154,7 @@ def filter_prunable_monitors(
 ) -> list[dict[Any, Any]]:
     prunable_monitors: list[dict[Any, Any]] = []
     ingress_hosts_str_arr = [host.host for host in ingress_hosts]
-    ignored = [host for host in ingress_hosts if host.ignore]
+    ignored = [host.host for host in ingress_hosts if host.ignore]
     for monitor in monitors:
         host = strip_url_components(monitor["url"])
         if host not in ingress_hosts_str_arr:
@@ -181,4 +182,4 @@ if __name__ == "__main__":
         print("buffer... starting in 30 seconds")
         time.sleep(30)
         main()
-        time.sleep(30)
+        print("done. starting again in 30 seconds")
