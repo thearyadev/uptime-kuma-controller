@@ -95,6 +95,7 @@ def main() -> int:
         uptime_kuma_client.add_monitor_tag(
             tag_id=tag["id"], monitor_id=monitor_added["monitorID"]
         )
+    uptime_kuma_client.disconnect()
     return 0
 
 
@@ -179,7 +180,7 @@ def filter_missing_monitors(
 
 if __name__ == "__main__":
     while True:
-        print("buffer... starting in 30 seconds")
-        time.sleep(30)
+        print("buffer... starting in 10 seconds")
+        time.sleep(10)
         main()
         print("done. starting again in 30 seconds")
