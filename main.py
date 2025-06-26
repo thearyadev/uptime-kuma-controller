@@ -6,12 +6,13 @@ from dataclasses import dataclass
 import os
 import time
 
+
 @dataclass
 class Ingress:
     host: str
     ignore: bool
     secure: bool
-    
+
     def __hash__(self) -> int:
         return hash(self.host)
 
@@ -49,8 +50,15 @@ def main() -> int:
     KUMA_USERNAME = os.getenv("KUMA_USERNAME")
     KUMA_PASSWORD = os.getenv("KUMA_PASSWORD")
     PROD = os.getenv("PROD")
-    if not UPTIME_KUMA_API_URL or not CONTROLLER_TAG or not KUMA_USERNAME or not KUMA_PASSWORD:
-        print("UPTIME_KUMA_API_URL, CONTROLLER_TAG, KUMA_USERNAME, and KUMA_PASSWORD environment variables are not set")
+    if (
+        not UPTIME_KUMA_API_URL
+        or not CONTROLLER_TAG
+        or not KUMA_USERNAME
+        or not KUMA_PASSWORD
+    ):
+        print(
+            "UPTIME_KUMA_API_URL, CONTROLLER_TAG, KUMA_USERNAME, and KUMA_PASSWORD environment variables are not set"
+        )
         if PROD:
             print("Exiting...")
             return 1
@@ -61,7 +69,9 @@ def main() -> int:
         KUMA_PASSWORD = "Arrk1174"
 
     k8s_client = get_networking_api_client()
-    uptime_kuma_client = get_uptime_kuma_api_client(UPTIME_KUMA_API_URL, KUMA_USERNAME, KUMA_PASSWORD)
+    uptime_kuma_client = get_uptime_kuma_api_client(
+        UPTIME_KUMA_API_URL, KUMA_USERNAME, KUMA_PASSWORD
+    )
     tag = get_or_create_tag(uptime_kuma_client, CONTROLLER_TAG)
     monitors = get_monitors(uptime_kuma_client, CONTROLLER_TAG)
     ingress_hosts = get_ingress_hosts(k8s_client)
@@ -77,7 +87,9 @@ def main() -> int:
     for ingress in missing_monitors:
         print(f"Adding monitor: {ingress.host}")
         monitor_added = uptime_kuma_client.add_monitor(
-            type=MonitorType.HTTP, url=f"{'https' if ingress.secure else 'http'}://{ingress.host}", name=ingress.host
+            type=MonitorType.HTTP,
+            url=f"{'https' if ingress.secure else 'http'}://{ingress.host}",
+            name=ingress.host,
         )
         uptime_kuma_client.add_monitor_tag(
             tag_id=tag["id"], monitor_id=monitor_added["monitorID"]
@@ -101,7 +113,7 @@ def get_ingress_hosts(client: NetworkingV1Api) -> set[Ingress]:
         for rule in ingressItem.spec.rules:
             try:
                 hosts.add(
-                    i:=Ingress(
+                    i := Ingress(
                         host=rule.host,
                         ignore=ignore,
                         secure=secure,
@@ -140,11 +152,13 @@ def filter_prunable_monitors(
     monitors: list[dict[Any, Any]], ingress_hosts: set[Ingress]
 ) -> list[dict[Any, Any]]:
     prunable_monitors: list[dict[Any, Any]] = []
-    ingress_hosts_str_arr = [host for host in ingress_hosts]
+    ingress_hosts_str_arr = [host.host for host in ingress_hosts]
     ignored = [host for host in ingress_hosts if host.ignore]
     for monitor in monitors:
         host = strip_url_components(monitor["url"])
-        if host not in ingress_hosts_str_arr or host in ignored:
+        if host not in ingress_hosts_str_arr:
+            prunable_monitors.append(monitor)
+        elif host in ignored:
             prunable_monitors.append(monitor)
     return prunable_monitors
 
@@ -164,5 +178,7 @@ def filter_missing_monitors(
 
 if __name__ == "__main__":
     while True:
-        time.sleep(60)
+        print("buffer... starting in 30 seconds")
+        time.sleep(30)
         main()
+        time.sleep(30)
